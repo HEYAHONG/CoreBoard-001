@@ -31,7 +31,7 @@ breed为bootloader，可以供Web刷机功能(开机时按住重启键)。
 ```bash
 # 烧录
 ## 注意：整个过程中需要将WAN连接至internet。
-## 进入tmp，将下载的文件保存内存中
+## 进入tmp，将下载的文件保存在内存中
 cd /tmp
 ## 下载breed-mt7688-reset38.bin
 wget https://breed.hackpascal.net/breed-mt7688-reset38.bin
@@ -41,6 +41,7 @@ mtd -r write breed-mt7688-reset38.bin u-boot
 reboot
 
 # 解锁u-boot
+## 注意：整个过程中需要将WAN连接至internet。
 ## 仅适用于新版openwrt,若烧录u-boot未报错，无需进行下列步骤。
 
 ## 更新opkg软件包
