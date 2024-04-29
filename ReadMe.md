@@ -34,7 +34,7 @@ cd /tmp
 #下载breed-mt7688-reset38.bin
 wget https://breed.hackpascal.net/breed-mt7688-reset38.bin
 #写入u-boot
-mtd write -r breed-mt7688-reset38.bin
+mtd -r write breed-mt7688-reset38.bin u-boot
 #重启
 reboot
 ```
