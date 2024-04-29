@@ -26,17 +26,31 @@ breed为bootloader，可以供Web刷机功能(开机时按住重启键)。
 
 其下载地址为[https://breed.hackpascal.net/](https://breed.hackpascal.net/)，文件名为[breed-mt7688-reset38.bin](https://breed.hackpascal.net/breed-mt7688-reset38.bin)。
 
-使用ssh登录HLK-7688A模块后，其主要步骤如下:
+通过ssh使用root用户登录HLK-7688A模块后，其主要步骤如下:
 
 ```bash
-#进入tmp，将下载的文件保存内存中
+# 烧录
+## 注意：整个过程中需要将WAN连接至internet。
+## 进入tmp，将下载的文件保存内存中
 cd /tmp
-#下载breed-mt7688-reset38.bin
+## 下载breed-mt7688-reset38.bin
 wget https://breed.hackpascal.net/breed-mt7688-reset38.bin
-#写入u-boot
+## 写入u-boot,若此步骤失败，则需要解锁u-boot。
 mtd -r write breed-mt7688-reset38.bin u-boot
-#重启
+## 重启
 reboot
+
+# 解锁u-boot
+## 仅适用于新版openwrt,若烧录u-boot未报错，无需进行下列步骤。
+
+## 更新opkg软件包
+opkg update
+
+## 安装mtd-rw模块
+opkg install kmod-mtd-rw
+
+## 加载mtd-rw模块，加载完成后u-boot变为可写。此时则可进行 写入u-boot 的操作。
+insmod mtd-rw i_want_a_brick=1
 ```
 
 ## openwrt
