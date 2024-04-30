@@ -32,8 +32,16 @@ feeds:openwrt/Makefile
 openwrt/feeds/:feeds
 
 #准备
+GitDate		=	$(shell git show   --pretty=tformat:%as 2>/dev/null | sed -n 1p)
+GitVersion	=	$(shell git rev-parse --short HEAD 2>/dev/null)
+
 prepare: openwrt/Makefile openwrt/feeds/ openwrt/.config
 	${Q}-openwrt_path_patch 2>/dev/null #若处在HEnvBox中，尝试修改源代码保存路径
+	${Q}# 更新版本号
+	${Q}echo "GitDate=${GitDate},GitVerison=${GitVersion}"
+	${Q}sed -i "s/CONFIG_VERSION_NUMBER=.*/CONFIG_VERSION_NUMBER=\"${GitDate}\"/g" openwrt/.config
+	${Q}sed -i "s/CONFIG_VERSION_CODE=.*/CONFIG_VERSION_CODE=\"${GitVersion}\"/g" openwrt/.config
+
 
 #构建
 build:
