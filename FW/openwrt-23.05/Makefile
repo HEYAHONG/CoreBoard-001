@@ -5,7 +5,7 @@ Q=@
 endif
 
 #伪目标
-.PHONY:all prepare build menuconfig
+.PHONY:all prepare feeds build menuconfig
 
 #主要步骤的依赖
 all:build
