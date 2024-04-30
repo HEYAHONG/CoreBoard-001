@@ -1793,6 +1793,12 @@ CONFIG_ZABBIX_POSTGRESQL=y
 # end of Boot Loaders
 
 #
+# CoreBoard-001
+#
+CONFIG_PACKAGE_FirstBootInit=y
+# end of CoreBoard-001
+
+#
 # Development
 #
 

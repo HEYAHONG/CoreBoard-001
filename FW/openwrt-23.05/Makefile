@@ -24,6 +24,8 @@ openwrt/.config: openwrt/Makefile
 
 #feeds
 feeds:openwrt/Makefile
+	${Q}cp openwrt/feeds.conf.default openwrt/feeds.conf
+	${Q}./local_feeds 1>> openwrt/feeds.conf 
 	${Q}openwrt/scripts/feeds update -a
 	${Q}openwrt/scripts/feeds install -a -f
 
