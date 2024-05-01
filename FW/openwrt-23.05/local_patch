@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# shellcheck disable=SC2128  # ignore array expansion warning
+if [ -n "${BASH_SOURCE-}" ]
+then
+	self_path="${BASH_SOURCE}"
+elif [ -n "${ZSH_VERSION-}" ]
+then
+	self_path="${(%):-%x}"
+else
+		exit 1
+fi
+
+# shellcheck disable=SC2169,SC2169,SC2039  # unreachable with 'dash'
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	# convert possibly relative path to absolute
+	script_dir="$(realpath_int "${self_path}")"
+	# resolve any ../ references to make the path shorter
+	script_dir="$(cd "${script_dir}" || exit 1; pwd)"
+else
+	# convert to full path and get the directory name of that
+	script_name="$(readlink -f "${self_path}")"
+	script_dir="$(dirname "${script_name}")"
+fi
+
+#参数1为补丁路径，参数二为戳路径，参数2为sha256sum输出结果
+function patch_diff()
+{
+    echo apply patch "${3}"
+	patch -p1 -d "${script_dir}/openwrt" < "${1}"
+	if [ "$?" -eq "0" ]
+	then
+		echo -n "${3}" > "${2}"
+	fi
+}
+
+pushd "${script_dir}" > /dev/null
+
+for patch_file in `find local_patch.d -name "*.diff"`
+do
+    patch_file_path=`realpath "${patch_file}"`
+    patch_file_stamp="${patch_file_path}.stamp"
+    patch_file_sha256sum=`sha256sum "${patch_file_path}"`
+    if [ -f ${patch_file_stamp} ]
+    then
+        if [ "${patch_file_sha256sum}" != "`cat "${patch_file_stamp}"`" ]
+        then
+            patch_diff "${patch_file_path}" "${patch_file_stamp}" "${patch_file_sha256sum}"
+		else
+			echo "${patch_file_path}" has been patched!
+        fi
+    else
+        patch_diff "${patch_file_path}" "${patch_file_stamp}" "${patch_file_sha256sum}"
+    fi
+done
+
+popd > /dev/null

@@ -74,7 +74,8 @@ CONFIG_TARGET_ramips_mt76x8=y
 # CONFIG_TARGET_ramips_mt76x8_DEVICE_glinet_vixmini is not set
 # CONFIG_TARGET_ramips_mt76x8_DEVICE_hak5_wifi-pineapple-mk7 is not set
 # CONFIG_TARGET_ramips_mt76x8_DEVICE_hilink_hlk-7628n is not set
-CONFIG_TARGET_ramips_mt76x8_DEVICE_hilink_hlk-7688a=y
+# CONFIG_TARGET_ramips_mt76x8_DEVICE_hilink_hlk-7688a is not set
+CONFIG_TARGET_ramips_mt76x8_DEVICE_hyh_coreboard-001=y
 # CONFIG_TARGET_ramips_mt76x8_DEVICE_hiwifi_hc5611 is not set
 # CONFIG_TARGET_ramips_mt76x8_DEVICE_hiwifi_hc5661a is not set
 # CONFIG_TARGET_ramips_mt76x8_DEVICE_hiwifi_hc5761a is not set
@@ -154,7 +155,7 @@ CONFIG_HAS_SUBTARGETS=y
 CONFIG_HAS_DEVICES=y
 CONFIG_TARGET_BOARD="ramips"
 CONFIG_TARGET_SUBTARGET="mt76x8"
-CONFIG_TARGET_PROFILE="DEVICE_hilink_hlk-7688a"
+CONFIG_TARGET_PROFILE="DEVICE_hyh_coreboard-001"
 CONFIG_TARGET_ARCH_PACKAGES="mipsel_24kc"
 CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kc"
 CONFIG_CPU_TYPE="24kc"
@@ -168,9 +169,11 @@ CONFIG_DEFAULT_firewall4=y
 CONFIG_DEFAULT_fstools=y
 CONFIG_DEFAULT_iwinfo=y
 CONFIG_DEFAULT_kmod-gpio-button-hotplug=y
+CONFIG_DEFAULT_kmod-i2c-mt7628=y
 CONFIG_DEFAULT_kmod-leds-gpio=y
 CONFIG_DEFAULT_kmod-mt7603=y
 CONFIG_DEFAULT_kmod-nft-offload=y
+CONFIG_DEFAULT_kmod-rtc-ds1307=y
 CONFIG_DEFAULT_kmod-usb-ledtrig-usbport=y
 CONFIG_DEFAULT_kmod-usb-ohci=y
 CONFIG_DEFAULT_kmod-usb2=y
@@ -521,7 +524,7 @@ CONFIG_TARGET_INIT_SUPPRESS_STDERR=y
 CONFIG_VERSIONOPT=y
 CONFIG_VERSION_DIST="OpenWrt"
 CONFIG_VERSION_NUMBER="2024-04-30"
-CONFIG_VERSION_CODE="9161823"
+CONFIG_VERSION_CODE="c5122cf"
 CONFIG_VERSION_REPO="https://downloads.openwrt.org/releases/23.05-SNAPSHOT"
 CONFIG_VERSION_HOME_URL=""
 CONFIG_VERSION_MANUFACTURER="HYH"
