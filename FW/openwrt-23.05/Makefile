@@ -5,7 +5,7 @@ Q=@
 endif
 
 #伪目标
-.PHONY:all prepare feeds build menuconfig
+.PHONY:all prepare feeds build menuconfig openwrt/.config
 
 #主要步骤的依赖
 all:build
