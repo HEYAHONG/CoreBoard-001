@@ -1,0 +1,14 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/functions/system.sh
+
+#调整时区
+uci -q batch <<-EOF
+set system.@system[-1].timezone='CST-8'
+set system.@system[-1].zonename='Asia/Shanghai'
+commit
+EOF
+
+#应用系统设置
+/etc/init.d/system  restart

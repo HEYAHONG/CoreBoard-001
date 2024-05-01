@@ -24,6 +24,10 @@
 
 虽然openwrt本身支持rtc实时时钟，但某些芯片需要初始化一次后才会启动。如DS1307必须将相应的CH位(clock halt)清除才能启动时钟。
 
+### 10timezone
+
+将时区设置为UTC+8时区（北京时间）
+
 # 使用
 
 将需要第一次启动的脚本文件放入[./files/etc/FirstBootInit/script/](./files/etc/FirstBootInit/script/) 目录中。
