@@ -1,0 +1,21 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/functions/system.sh
+
+function rtc_init()
+{
+	logger -t RTC -p daemon.info Found RTC!
+	hwclock 2>/dev/null >/dev/null
+	if [ "$?" -ne "0" ]
+	then
+		logger -t RTC -p daemon.info Init RTC!
+		#写入RTC时钟，将自动初始化RTC
+		hwclock -w
+	fi
+}
+
+if [ -e /dev/rtc0 ] && [ -x /sbin/hwclock ]
+then
+	rtc_init
+fi
