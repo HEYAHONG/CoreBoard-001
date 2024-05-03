@@ -24,7 +24,7 @@ export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 
 ## git http/https代理设置
 
-git代理用于从https://git.openwrt.org下载源代码，一般设置如下：
+git代理用于从[https://git.openwrt.org](https://git.openwrt.org)下载源代码，一般设置如下：
 
 ```bash
 #以下命令只需要执行一次，保存在~/.gitconfig中
@@ -35,7 +35,7 @@ git config --global https.proxy http://127.0.0.1:10809
 
 ## wget/curl代理设置
 
-wget/curl代理主要用于下载源代码时使用代理，如从github.com上下载源代码。
+wget/curl代理主要用于下载源代码时使用代理，如从[https://github.com](https://github.com)上下载源代码。
 
 ```bash
 #以下命令需要在make执行前执行,每个终端均需执行一次
