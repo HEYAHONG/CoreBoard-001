@@ -53,7 +53,7 @@ build:
 menuconfig:
 	${Q}${MAKE} -C openwrt menuconfig
 	${Q}cp openwrt/.config defconfig
-	#将保存的版本号改为dummy，实际版本号由prepare步骤生成
+	${Q}#将保存的版本号改为dummy，实际版本号由prepare步骤生成
 	${Q}sed -i "s/CONFIG_VERSION_NUMBER=.*/CONFIG_VERSION_NUMBER=\"dummy\"/g" defconfig
 	${Q}sed -i "s/CONFIG_VERSION_CODE=.*/CONFIG_VERSION_CODE=\"dummy\"/g" defconfig
 
