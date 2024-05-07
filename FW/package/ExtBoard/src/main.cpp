@@ -5,8 +5,13 @@
 #include "signal.h"
 #include "version.h"
 #include "DeamonLog.h"
+#include "DBusInterface.h"
 
 static bool isrunning=true;
+extern "C" void main_stop_running()
+{
+    isrunning=false;
+}
 static void signalHandler(int signum)
 {
     if(!isrunning)
@@ -34,11 +39,18 @@ int main(int argc,const char *argv[])
 
     DeamonLog_Init();
 
+    DbusInterface_Init();
+
     while(isrunning)
     {
-        //procd要求守护进程不能退出
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        while(isrunning)
+        {
+            //procd要求守护进程不能退出
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
     }
+
+    DbusInterface_Deinit();
 
     DeamonLog_Deinit();
 
