@@ -55,3 +55,13 @@ pkg_check_modules(DBUSCXX REQUIRED IMPORTED_TARGET dbus-cxx-2.0)
 target_link_libraries( ${PROJECTNAME}  PkgConfig::DBUSCXX)
 
 
+#添加包含CMakeLists.txt的子目录
+file(GLOB SUBDIRS *)
+foreach(SUBDIR ${SUBDIRS})
+	if(IS_DIRECTORY ${SUBDIR})
+		if(EXISTS ${SUBDIR}/CMakeLists.txt)
+			add_subdirectory(${SUBDIR})
+		endif()
+	endif()
+endforeach()
+
