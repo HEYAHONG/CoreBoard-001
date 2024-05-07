@@ -28,7 +28,7 @@ void DbusInterface_Init()
     dispatcher=DBus::StandaloneDispatcher::create();
     if(dispatcher != nullptr)
     {
-        con=dispatcher->create_connection(DBus::BusType::SESSION);
+        con=dispatcher->create_connection(DBus::BusType::SYSTEM);
     }
 
     if(con == nullptr)
