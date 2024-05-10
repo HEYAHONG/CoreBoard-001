@@ -17,9 +17,9 @@ add_definitions("-DOPENWRT")
 endif()
 
 #添加源代码
-file(GLOB  C_FILES *.h *.cpp  *.c log/*.h log/*.cpp log/*.c dbus/*.h dbus/*.cpp dbus/*.c)
+file(GLOB  C_FILES *.h *.cpp  *.c log/*.h log/*.cpp log/*.c dbus/*.h dbus/*.cpp dbus/*.c usb/*.h usb/*.cpp usb/*.c)
 target_sources(${PROJECTNAME} PUBLIC ${C_FILES})
-target_include_directories(${PROJECTNAME}  PUBLIC ./ ./log/ ./dbus)
+target_include_directories(${PROJECTNAME}  PUBLIC ./ ./log/ ./dbus ./usb)
 
 
 #安装

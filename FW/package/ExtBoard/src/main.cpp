@@ -6,6 +6,7 @@
 #include "version.h"
 #include "DeamonLog.h"
 #include "DBusInterface.h"
+#include "USB.h"
 
 static bool isrunning=true;
 extern "C" void main_stop_running()
@@ -43,11 +44,15 @@ int main(int argc,const char *argv[])
 
     while(isrunning)
     {
+        USB_Init();
+
         while(isrunning)
         {
             //procd要求守护进程不能退出
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
+
+        USB_Deinit();
     }
 
     DbusInterface_Deinit();
