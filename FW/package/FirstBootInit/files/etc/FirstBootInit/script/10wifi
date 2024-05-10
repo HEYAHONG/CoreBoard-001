@@ -4,7 +4,7 @@
 . /lib/functions/system.sh
 
 #MAC地址
-Mac=`get_mac_label | sed  's/://g'`
+Mac=`cat /sys/class/net/br-lan/address | sed  's/://g'`
 
 default_wifi_ap() {
 	uci -q batch <<-EOF
