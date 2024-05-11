@@ -5,8 +5,12 @@
 #include "libserialport.h"
 #include "unistd.h"
 #include <fstream>
+#include <thread>
+#include <chrono>
 
 static libusb_context *ctx=NULL;
+static std::recursive_mutex ctx_lock;
+
 extern "C" void main_stop_running();
 
 static std::vector<USB_Device_Info_t> usb_device_list;
@@ -157,6 +161,17 @@ static void usb_device_list_add(libusb_context *ctx,libusb_device *device)
                             if(usb_bus==bus_number && usb_addr==address)
                             {
                                 info->device_map["serialport"].insert(sp_get_port_name(serial_port));
+                                {
+                                    //增强兼容性
+                                    if(info->manufacturer.empty())
+                                    {
+                                        info->manufacturer=sp_get_port_usb_manufacturer(serial_port);
+                                    }
+                                    if(info->product.empty())
+                                    {
+                                        info->product=sp_get_port_usb_product(serial_port);
+                                    }
+                                }
                             }
                         }
                     }
@@ -308,27 +323,117 @@ static void libusb_log(libusb_context *ctx,enum libusb_log_level level, const ch
     LOGINFO("USB(%d) :%s",static_cast<int>(level),str);
 }
 
+static void usb_device_log_info(int bus=-1,int dev=-1);
 static int libusb_hotplug_callback(libusb_context *ctx,libusb_device *device,libusb_hotplug_event event,void *usr)
 {
     uint8_t bus_number=libusb_get_bus_number(device);
     uint8_t address=libusb_get_device_address(device);
+    libusb_device_descriptor desc;
+    libusb_get_device_descriptor(device,&desc);
     switch(event)
     {
     case LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED:
     {
+        LOGINFO("New USB device(bus=%d,addr=%d,class=%d)",(int)bus_number,(int)address,(int)desc.bDeviceClass);
+        switch(desc.bDeviceClass)
+        {
+        case LIBUSB_CLASS_MASS_STORAGE:
+        case LIBUSB_CLASS_MISCELLANEOUS:
+        {
+            //等待某些驱动加载（如块设备驱动）
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+        break;
+        default:
+            break;
+        }
         usb_device_list_add(ctx,device);
-        LOGINFO("New USB device(bus=%d,addr=%d)",(int)bus_number,(int)address);
+        usb_device_log_info(bus_number,address);
     }
     break;
     case LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT:
     {
-        usb_device_list_device_set_valid(bus_number,address,false);
         LOGINFO("Delete USB device(bus=%d,addr=%d)",(int)bus_number,(int)address);
+        usb_device_log_info(bus_number,address);
+        usb_device_list_device_set_valid(bus_number,address,false);
     }
     break;
     }
 
     return 0;
+}
+
+static void usb_device_log_info(int bus,int addr)
+{
+    usb_device_list_enum([=](USB_Device_Info_t &dev) -> void
+    {
+        if(bus!=-1)
+        {
+            if(bus!=dev.bus)
+            {
+                return;
+            }
+        }
+        if(addr!=-1)
+        {
+            if(addr!=dev.address)
+            {
+                return;
+            }
+        }
+        if(!dev.vaild)
+        {
+            return;
+        }
+        std::string path_numbers_string;
+        {
+            for(size_t i=0; i<sizeof(dev.path); i++)
+            {
+                if(dev.path[i] == 0)
+                {
+                    break;
+                }
+                if(i!=0)
+                {
+                    path_numbers_string+=".";
+                }
+                path_numbers_string+=std::to_string(dev.path[i]);
+            }
+        }
+        LOGINFO("USB Device(%d.%d)",(int)dev.bus,(int)dev.address);
+        if(!path_numbers_string.empty())
+        {
+            LOGINFO("    path=%s",path_numbers_string.c_str());
+        }
+        if(!dev.manufacturer.empty())
+        {
+            LOGINFO("    manufacturer=%s",dev.manufacturer.c_str());
+        }
+        if(!dev.product.empty())
+        {
+            LOGINFO("    product=%s",dev.product.c_str());
+        }
+
+        if(dev.device_map.find("serialport") != dev.device_map.end())
+        {
+            LOGINFO("    serialport:");
+            std::set<std::string> devpathset=dev.device_map["serialport"];
+            for(std::string devpath:devpathset)
+            {
+                LOGINFO("        %s",devpath.c_str());
+            }
+        }
+
+        if(dev.device_map.find("block") != dev.device_map.end())
+        {
+            LOGINFO("    block:");
+            std::set<std::string> devpathset=dev.device_map["block"];
+            for(std::string devpath:devpathset)
+            {
+                LOGINFO("        %s",devpath.c_str());
+            }
+        }
+    });
 }
 
 void USB_Init()
@@ -349,73 +454,34 @@ void USB_Init()
         return;
     }
 
-    if(LIBUSB_SUCCESS!=libusb_hotplug_register_callback(ctx,LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED|LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,0,LIBUSB_HOTPLUG_MATCH_ANY,LIBUSB_HOTPLUG_MATCH_ANY,LIBUSB_HOTPLUG_MATCH_ANY,libusb_hotplug_callback,NULL,NULL))
-    {
-        main_stop_running();
-        LOGINFO("Init USB failed!");
-        return;
-    }
+    usb_device_log_info();
 
     {
-        //显示当前设备
-        usb_device_list_enum([](USB_Device_Info_t &dev) -> void
+        //启动USB线程
+        std::thread usb_thread([]()
         {
-            std::string path_numbers_string;
+            while(ctx!=NULL)
             {
-                for(size_t i=0; i<sizeof(dev.path); i++)
                 {
-                    if(dev.path[i] == 0)
-                    {
-                        break;
-                    }
-                    if(i!=0)
-                    {
-                        path_numbers_string+=".";
-                    }
-                    path_numbers_string+=std::to_string(dev.path[i]);
+                    std::lock_guard<std::recursive_mutex> lock(ctx_lock);
+                    struct timeval ctx_timeout;
+                    ctx_timeout.tv_sec=2;
+                    ctx_timeout.tv_usec=0;
+                    libusb_handle_events_timeout(ctx,&ctx_timeout);
                 }
-            }
-            LOGINFO("USB Device(%d.%d)",(int)dev.bus,(int)dev.address);
-            if(!path_numbers_string.empty())
-            {
-                LOGINFO("    path=%s",path_numbers_string.c_str());
-            }
-            if(!dev.manufacturer.empty())
-            {
-                LOGINFO("    manufacturer=%s",dev.manufacturer.c_str());
-            }
-            if(!dev.product.empty())
-            {
-                LOGINFO("    product=%s",dev.product.c_str());
-            }
-
-            if(dev.device_map.find("serialport") != dev.device_map.end())
-            {
-                LOGINFO("    serialport:");
-                std::set<std::string> devpathset=dev.device_map["serialport"];
-                for(std::string devpath:devpathset)
-                {
-                    LOGINFO("        %s",devpath.c_str());
-                }
-            }
-
-            if(dev.device_map.find("block") != dev.device_map.end())
-            {
-                LOGINFO("    block:");
-                std::set<std::string> devpathset=dev.device_map["block"];
-                for(std::string devpath:devpathset)
-                {
-                    LOGINFO("        %s",devpath.c_str());
-                }
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         });
+        usb_thread.detach();
     }
+
 }
 
 void USB_Deinit()
 {
     if(ctx!=NULL)
     {
+        std::lock_guard<std::recursive_mutex> lock(ctx_lock);
         libusb_exit(ctx);
         ctx=NULL;
     }
