@@ -341,7 +341,7 @@ static int libusb_hotplug_callback(libusb_context *ctx,libusb_device *device,lib
         case LIBUSB_CLASS_MISCELLANEOUS:
         {
             //等待某些驱动加载（如块设备驱动）
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
         break;
         default:
