@@ -1,0 +1,60 @@
+#!/bin/sh
+TAG=ExtBoardRNDISScan
+
+function log()
+{
+	logger -t "${TAG}" "$*"
+}
+
+log Start
+for iface in `ls /sys/class/net/`
+do
+	if [ -d "/sys/class/net/${iface}/device/driver/module/drivers/usb:rndis_host" ]
+	then
+		log "Found RNDIS device ${iface}!"
+		
+		#添加interface
+		uci -q batch <<-EOF
+			set network.RNDIS=interface
+			set network.RNDIS.proto='dhcp'
+			set network.RNDIS.device='${iface}'
+			set network.RNDIS6=interface
+			set network.RNDIS6.proto='dhcpv6'
+			set network.RNDIS6.device='${iface}'
+			set network.RNDIS6.reqaddress='try'
+			set network.RNDIS6.reqprefix='auto'
+			commit
+		EOF
+
+		FIREWALL_ADDED=0
+		for net in `uci get firewall.@zone[1].network`
+		do
+			if [ "${net}" = "RNDIS" ]
+			then
+				#防火墙已添加
+				FIREWALL_ADDED=1
+			fi
+		done
+
+		if [ "${FIREWALL_ADDED}" = "0" ]
+		then
+			#将RNDIS、RNDIS6添加至WAN区域
+			uci -q batch <<-EOF
+				add_list firewall.@zone[1].network='RNDIS'
+				add_list firewall.@zone[1].network='RNDIS6'
+				commit
+			EOF
+		fi
+		
+		#重启firewall
+		/etc/init.d/firewall restart
+		
+		#重启network
+		/etc/init.d/network restart
+
+		#只支持一个RNDIS设备，后续设备不再测试
+		break
+		
+	fi
+done
+log End

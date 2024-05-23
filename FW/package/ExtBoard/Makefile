@@ -18,7 +18,7 @@ include $(INCLUDE_DIR)/cmake.mk
 define Package/ExtBoardDeamon
   SECTION:=ExtBoard
   CATEGORY:= CoreBoard-001
-  DEPENDS:= +libusb-1.0 +libserialport +libstdcpp +libc +librt +libpthread +dbus-cxx +jsoncpp
+  DEPENDS:= +libusb-1.0 +libserialport +libstdcpp +libc +librt +libpthread +dbus-cxx +jsoncpp +kmod-usb-acm +kmod-usb-net-rndis +kmod-usb-storage +kmod-usb-storage-uas
   TITLE:= Deamon for ExtBoard
 endef
 

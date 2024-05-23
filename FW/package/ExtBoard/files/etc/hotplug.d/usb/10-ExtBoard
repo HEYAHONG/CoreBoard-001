@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ "${DRIVER}" == "rndis_host" ]
+then
+	#扫描RNDIS设备
+	logger -t hotplug RNDIS Device Scan !
+	[ -x /usr/bin/ExtBoardRNDISScan ] && /usr/bin/ExtBoardRNDISScan
+fi
