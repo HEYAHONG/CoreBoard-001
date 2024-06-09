@@ -5,7 +5,7 @@ Q=@
 endif
 
 #伪目标
-.PHONY:all prepare feeds build menuconfig openwrt/.config clean
+.PHONY:all prepare feeds build menuconfig openwrt/Makefile  openwrt/.config clean
 
 #主要步骤的依赖
 all:build
@@ -16,7 +16,6 @@ clean:prepare
 #openwrt源代码
 openwrt/Makefile:
 	${Q}git submodule update --init --recursive
-	${Q}git submodule update
 	${Q}[ -f openwrt/Makefile ] || echo openwrt download failed!
 	${Q}[ -f openwrt/Makefile ]
 
