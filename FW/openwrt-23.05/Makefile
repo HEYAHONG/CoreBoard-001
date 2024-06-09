@@ -16,6 +16,7 @@ clean:prepare
 #openwrt源代码
 openwrt/Makefile:
 	${Q}git submodule update --init --recursive
+	${Q}git submodule update
 	${Q}[ -f openwrt/Makefile ] || echo openwrt download failed!
 	${Q}[ -f openwrt/Makefile ]
 
