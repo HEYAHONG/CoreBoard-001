@@ -3,8 +3,15 @@
 . /lib/functions.sh
 . /lib/functions/system.sh
 
+#等待br-lan准备好
+while [ ! -d /sys/class/net/br-lan ]
+do
+    sleep 5
+    logger -t Wifi -p daemon.info  wait for br-lan!
+done
+
 #MAC地址
-Mac=`cat /sys/class/net/br-lan/address | sed  's/://g'`
+Mac=`cat /sys/class/net/br-lan/address | sed  's/://g' | tr a-z A-Z`
 
 default_wifi_ap() {
 	uci -q batch <<-EOF
