@@ -1,26 +1,24 @@
 diff --git a/target/linux/ramips/patches-5.15/999-add-linux_spidev-support.patch b/target/linux/ramips/patches-5.15/999-add-linux_spidev-support.patch
 new file mode 100644
-index 0000000000..fbaacdaa7b
+index 0000000000..e168d71687
 --- /dev/null
 +++ b/target/linux/ramips/patches-5.15/999-add-linux_spidev-support.patch
-@@ -0,0 +1,20 @@
-+diff --git a/drivers/spi/spidev.c b/drivers/spi/spidev.c
-+index 1bd73e322b7b..5ecdda2db4f3 100644
-+--- a/drivers/spi/spidev.c
-++++ b/drivers/spi/spidev.c
-+@@ -682,6 +682,7 @@ static const struct spi_device_id spidev_spi_ids[] = {
-+ 	{ .name = "m53cpld" },
-+ 	{ .name = "spi-petra" },
+@@ -0,0 +1,18 @@
++--- a/drivers/spi/spidev.c	2025-01-16 18:43:08.276444551 +0800
+++++ b/drivers/spi/spidev.c	2025-01-16 18:45:25.603031888 +0800
++@@ -694,6 +694,7 @@
 + 	{ .name = "spi-authenta" },
++ 	{ .name = "em3581" },
++ 	{ .name = "si3210" },
 ++	{ .name = "spidev" },
-+	{ .name = "em3581" },
-+	{ .name = "si3210" },
-+	{},
-+@@ -696,6 +697,7 @@ static const struct of_device_id spidev_dt_ids[] = {
-+ 	{ .compatible = "menlo,m53cpld" },
-+ 	{ .compatible = "cisco,spi-petra" },
-+ 	{ .compatible = "micron,spi-authenta" },
-++	{ .compatible = "linux,spidev" },
-+ 	{ .compatible = "silabs,em3581" },
-+	{ .compatible = "silabs,si3210" },
-+	{},
++ 	{},
++ };
++ MODULE_DEVICE_TABLE(spi, spidev_spi_ids);
++@@ -724,6 +725,7 @@
++ 	{ .compatible = "semtech,sx1301", .data = &spidev_of_check },
++ 	{ .compatible = "silabs,em3581", .data = &spidev_of_check },
++ 	{ .compatible = "silabs,si3210", .data = &spidev_of_check },
+++	{ .compatible = "linux,spidev", .data = &spidev_of_check },
++ 	{},
++ };
++ MODULE_DEVICE_TABLE(of, spidev_dt_ids);
