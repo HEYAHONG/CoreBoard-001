@@ -54,6 +54,16 @@ target_link_libraries( ${PROJECTNAME}  PkgConfig::POPT)
 pkg_check_modules(DBUSCXX REQUIRED IMPORTED_TARGET dbus-cxx-2.0)
 target_link_libraries( ${PROJECTNAME}  PkgConfig::DBUSCXX)
 
+#HCppBox
+#设定HRC文件系统目录为fs
+set(HRC_FS_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/fs/)
+#添加3rdparty/HCppBox
+file(REAL_PATH ${CMAKE_CURRENT_SOURCE_DIR} CMAKE_CURRENT_SOURCE_DIR_REAL_PATH)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR_REAL_PATH}/../../3rdparty/HCppBox/master/  HCppBox EXCLUDE_FROM_ALL)
+#启用HCppBox、HRC
+hcppbox_enable(${PROJECT_NAME})
+hrc_enable(${PROJECT_NAME})
+
 
 #添加包含CMakeLists.txt的子目录
 file(GLOB SUBDIRS *)
