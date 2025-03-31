@@ -79,6 +79,12 @@ int hvprintf(const char* format, va_list va);
  */
 int hfctprintf(void (*out)(char character, void* arg), void* arg, const char* format, ...);
 
+/** \brief 用于使用自定义输出函数(out)输出打印
+ *
+ *
+ */
+int hvfctprintf(void (*out)(char character, void* arg), void* arg, const char* format, va_list va);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
@@ -101,6 +107,16 @@ int hfctprintf(void (*out)(char character, void* arg), void* arg, const char* fo
  */
 #ifndef H3RDPARTY_PAHO_MQTT_EMBEDDED_C_PACKET_HEADER
 #define H3RDPARTY_PAHO_MQTT_EMBEDDED_C_PACKET_HEADER "3rdparty/paho.mqtt.embedded-c/MQTTPacket/src/MQTTPacket.h"
+#endif
+
+/*
+ * 引入softfp库,用户需要手动引入相应头文件
+ */
+#ifndef H3RDPARTY_SOFTFP_HEADER
+#define H3RDPARTY_SOFTFP_HEADER "3rdparty/softfp/softfp.h"
+#endif
+#ifndef H3RDPARTY_SOFTFLOAT_HEADER
+#define H3RDPARTY_SOFTFLOAT_HEADER "3rdparty/softfp/softfloat.h"
 #endif
 
 #endif // __H3RDPARTY_H__

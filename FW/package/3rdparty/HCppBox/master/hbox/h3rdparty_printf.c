@@ -7,6 +7,10 @@
  * License:   MIT
  **************************************************************/
 #include "h3rdparty.h"
+#include "hdefaults.h"
+#if defined(HDEFAULTS_OS_WINDOWS) || defined(HDEFAULTS_OS_UNIX)
+extern int putchar( int ch );
+#endif
 
 #ifdef _putchar
 #undef  _putchar
@@ -22,6 +26,12 @@ void _putchar(char c)
     if(putchar_cb!=NULL)
     {
         putchar_cb(c);
+    }
+    else
+    {
+#if defined(HDEFAULTS_OS_WINDOWS) || defined(HDEFAULTS_OS_UNIX)
+        putchar(c);
+#endif
     }
 }
 
@@ -59,5 +69,9 @@ void _putchar(char c)
 #include "3rdparty/printf/printf.h"
 #include "3rdparty/printf/printf.c"
 
-
+int hvfctprintf(void (*out)(char character, void* arg), void* arg, const char* format, va_list va)
+{
+    const out_fct_wrap_type out_fct_wrap = { out, arg };
+    return _vsnprintf(_out_fct, (char*)(uintptr_t)&out_fct_wrap, (size_t)-1, format, va);
+}
 
