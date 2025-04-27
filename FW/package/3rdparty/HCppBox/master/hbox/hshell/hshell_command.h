@@ -8,7 +8,8 @@
  **************************************************************/
 #ifndef __HSHELL_COMMAND_H__
 #define __HSHELL_COMMAND_H__
-
+#include "hcompiler.h"
+#include "hdefaults.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -42,7 +43,7 @@ struct hshell_command
         (hshell_command_entry_t)entry,\
         #name ,\
         #help \
-	  }
+    }
 
 /*
  * 注册命令（注意:此宏定义会占用hshell上下文的命令数组）
@@ -73,7 +74,7 @@ hshell_command_array_set(context,(hshell_command_t *)&HShellCommand$$Base,(((uin
         (hshell_command_entry_t)entry,\
         #name ,\
         #help \
-	  }
+    }
 
 /*
  * 注册命令（注意:此宏定义会占用hshell上下文的命令数组）

@@ -187,6 +187,10 @@ static int hshell_internal_command_help_entry(hshell_context_t *ctx,int *ret_cod
                                 uint8_t ch=hshell_internal_command[i].help[index];
                                 if(ch=='\n')
                                 {
+                                    if(index == 0 || hshell_internal_command[i].help[index-1]!='\r')
+                                    {
+                                        hshell_context_printf(context,"\r");
+                                    }
                                     hshell_context_printf(context,"\n");
                                     for(size_t j=0;j<max_name_len;j++)
                                     {
@@ -287,6 +291,10 @@ static int hshell_internal_command_help_entry(hshell_context_t *ctx,int *ret_cod
                                 uint8_t ch=context->command.array_base[i].help[index];
                                 if(ch=='\n')
                                 {
+                                    if(index == 0 || context->command.array_base[i].help[index-1]!='\r')
+                                    {
+                                        hshell_context_printf(context,"\r");
+                                    }
                                     hshell_context_printf(context,"\n");
                                     for(size_t j=0;j<max_name_len;j++)
                                     {
@@ -1348,7 +1356,7 @@ static int hshell_process_input(hshell_context_t *ctx)
     return ret;
 }
 
-static int hshell_show_promtp_string(hshell_context_t *ctx)
+static int hshell_show_prompt_string(hshell_context_t *ctx)
 {
     int ret=0;
     hshell_context_t *context=hshell_context_check_context(ctx);
@@ -1384,7 +1392,7 @@ int hshell_loop(hshell_context_t *ctx)
         return ret;
     }
 
-    if((ret=hshell_show_promtp_string(context))<0)
+    if((ret=hshell_show_prompt_string(context))<0)
     {
         return ret;
     }
