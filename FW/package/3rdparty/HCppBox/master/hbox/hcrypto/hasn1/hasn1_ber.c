@@ -140,7 +140,10 @@ size_t hasn1_ber_type_get(hasn1_ber_type_t *type,const uint8_t *data,size_t data
     if(type!=NULL)
     {
         type->type=type_field;
-        memcpy(type->tag,&data[1],ret-1);
+        if(ret > 1)
+        {
+            memcpy(type->tag,&data[1],ret-1);
+        }
     }
     return ret;
 }
@@ -325,7 +328,7 @@ size_t hasn1_ber_length_set(const hasn1_ber_length_t *length,uint8_t *data,size_
 size_t hasn1_ber_value_get( hasn1_ber_value_t *value,const uint8_t *data,size_t data_length)
 {
     size_t ret=0;
-    if(data==NULL && data_length ==0)
+    if(data==NULL || data_length ==0)
     {
         return ret;
     }
@@ -379,7 +382,7 @@ size_t hasn1_ber_value_get( hasn1_ber_value_t *value,const uint8_t *data,size_t 
 size_t hasn1_ber_value_set(const hasn1_ber_value_t *value,uint8_t *data,size_t data_length)
 {
     size_t ret=0;
-    if(data==NULL && data_length ==0 || value == NULL)
+    if(data==NULL || data_length ==0 || value == NULL)
     {
         return ret;
     }
@@ -428,5 +431,48 @@ size_t hasn1_ber_value_set(const hasn1_ber_value_t *value,uint8_t *data,size_t d
         }
     }
 
+    return ret;
+}
+
+bool hasn1_ber_parse(hasn1_ber_parse_callback_t callback,void *usr,size_t depth,const uint8_t *data,size_t data_length)
+{
+    bool ret=false;
+    if(callback == NULL || data == NULL || data_length == 0)
+    {
+        return ret;
+    }
+    depth++;
+    ret=true;
+    size_t index=0;
+    while(data_length > 0)
+    {
+        size_t current_length=0;
+        hasn1_ber_type_t type;
+        current_length+=hasn1_ber_type_get(&type,data,data_length);
+        hasn1_ber_length_t length;
+        current_length+=hasn1_ber_length_get(&length,data,data_length);
+        hasn1_ber_value_t value;
+        current_length+=hasn1_ber_value_get(&value,data,data_length);
+        if(current_length <= data_length)
+        {
+            callback(usr,depth,index,&type,&value);
+            if(hasn1_ber_type_p_c_get(&type)!=HASN1_BER_TYPE_PRIMITIVE)
+            {
+                if(!hasn1_ber_parse(callback,usr,depth,value.value,value.length))
+                {
+                    ret=false;
+                    break;
+                }
+            }
+            data+=current_length;
+            data_length-=current_length;
+        }
+        else
+        {
+            ret=false;
+            break;
+        }
+        index++;
+    }
     return ret;
 }

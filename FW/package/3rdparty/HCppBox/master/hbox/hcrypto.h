@@ -20,6 +20,8 @@ extern "C"
 #include "hcrypto/hbase64.h"
 #include "hcrypto/hasn1.h"
 #include "hcrypto/haes.h"
+#include "hcrypto/hrc4.h"
+#include "hcrypto/hchacha20.h"
 #include "hcrypto/hbcc.h"
 #include "hcrypto/hlrc.h"
 #include "hcrypto/hcrc.h"
@@ -30,6 +32,7 @@ extern "C"
 #include "hcrypto/hmd4.h"
 #include "hcrypto/hsm4.h"
 #include "hcrypto/hhmac.h"
+#include "hcrypto/hpoly1305.h"
 
 #ifdef __cplusplus
 }
