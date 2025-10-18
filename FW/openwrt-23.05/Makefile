@@ -60,3 +60,11 @@ menuconfig:
 #清理
 clean:
 	${Q}${MAKE} -C openwrt clean
+
+
+#distclean,用于某些情况下(如使用git更新源代码后)进行深度清理
+distclean:
+	#清理当前目录
+	${Q}git clean -x -f -d
+	#清理openwrt目录
+	${Q}pushd openwrt && git clean -x -f -d && git reset --hard && popd
