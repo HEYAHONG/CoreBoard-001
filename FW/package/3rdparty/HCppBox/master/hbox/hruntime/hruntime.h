@@ -24,6 +24,12 @@ extern "C"
  */
 void hruntime_init_lowlevel(void);
 
+/** \brief hruntime初始化(底层)是否完成。
+ *
+ * \return bool 是否完成
+ *
+ */
+bool hruntime_init_lowlevel_done(void);
 
 /** \brief hruntime初始化
  * 一般由hcpprt组件使用，当不能使用C++时，需要在空闲任务或者优先级较低的任务中调用。
@@ -31,11 +37,48 @@ void hruntime_init_lowlevel(void);
  */
 void hruntime_init(void);
 
+/** \brief hruntime初始化是否完成。
+ *
+ * \return bool 是否完成
+ *
+ */
+bool hruntime_init_done(void);
+
 /** \brief hruntime循环
  * 一般由hcpprt组件使用，当不能使用C++时，需要在空闲任务或者优先级较低的任务中周期性调用。
  *
  */
 void hruntime_loop(void);
+
+/** \brief hruntime循环是否开始
+ *
+ * \return bool 是否开始,若结束标志也为假则表示从未进入 hruntime循环
+ *
+ */
+bool hruntime_loop_begin(void);
+
+/** \brief hruntime循环是否结束
+ *
+ * \return bool 是否结束
+ *
+ */
+bool hruntime_loop_end(void);
+
+
+/** \brief hruntime启用软件定时器,注意：此函数应当在初始化时调用，运行过程中尽量不要使用
+ *
+ * \param enable bool 是否启用
+ *
+ */
+void hruntime_loop_enable_softwaretimer(bool enable);
+
+
+/** \brief hruntime启用软件看门狗,注意：此函数应当在初始化时调用，运行过程中尽量不要使用。当看门狗无效时将自动关闭软件看门狗，此时若看门狗再次有效需要手动打开
+ *
+ * \param enable bool 是否启用
+ *
+ */
+void hruntime_loop_enable_softwatchdog(bool enable);
 
 /*
  * 运行时函数(用于初始化或者循环中使用)
@@ -59,6 +102,23 @@ struct hruntime_function
  */
 void hruntime_function_array_invoke(const hruntime_function_t *array_base,size_t array_size);
 
+/*
+ * 定义导出的HRuntimeInit数据项
+ */
+#define HRUNTIME_INIT_DATA(name,priority,entry,usr)
+
+/*
+ * 定义导出的HRuntimeInit结构体
+ */
+#define HRUNTIME_INIT_STRUCT(name,priority,entry,usr) \
+    static const hruntime_function_t hruntime_init_##name = \
+    {\
+        (priority),\
+        (entry) ,\
+        (usr) \
+    }
+
+
 #if defined(HCOMPILER_ARMCC) || defined(HCOMPILER_ARMCLANG)
 /*
  * armcc/armclang,使用名称为HRuntimeInit的section
@@ -68,14 +128,10 @@ void hruntime_function_array_invoke(const hruntime_function_t *array_base,size_t
  * 导出初始化
  */
 #define HRUNTIME_INIT_EXPORT(name,priority,entry,usr) \
+    HRUNTIME_INIT_DATA(name,priority,entry,usr) \
     __USED\
     __SECTION("HRuntimeInit")\
-    static const hruntime_function_t hruntime_init_##name = \
-    {\
-        (priority),\
-        (entry) ,\
-        (usr) \
-    }
+    HRUNTIME_INIT_STRUCT(name,priority,entry,usr)
 
 /*
  * 调用导出的初始化函数
@@ -99,14 +155,10 @@ hruntime_function_array_invoke((hruntime_function_t *)&HRuntimeInit$$Base,(((uin
 * 导出初始化
 */
 #define HRUNTIME_INIT_EXPORT(name,priority,entry,usr) \
+    HRUNTIME_INIT_DATA(name,priority,entry,usr) \
     __USED\
     __SECTION(".HRuntimeInit")\
-    static const hruntime_function_t hruntime_init_##name = \
-    {\
-        (priority),\
-        (entry) ,\
-        (usr) \
-    }
+    HRUNTIME_INIT_STRUCT(name,priority,entry,usr)
 
 /*
  * 调用导出的初始化函数
@@ -139,6 +191,22 @@ hruntime_function_array_invoke(__hruntime_init_start,(((uintptr_t)__hruntime_ini
 #endif
 
 
+/*
+ * 定义导出的HRuntimeLoop数据项
+ */
+#define HRUNTIME_LOOP_DATA(name,priority,entry,usr)
+
+/*
+ * 定义导出的HRuntimeLoop结构体
+ */
+#define HRUNTIME_LOOP_STRUCT(name,priority,entry,usr) \
+    static const hruntime_function_t hruntime_loop_##name = \
+    {\
+        (priority),\
+        (entry) ,\
+        (usr) \
+    }
+
 #if defined(HCOMPILER_ARMCC) || defined(HCOMPILER_ARMCLANG)
 /*
  * armcc/armclang,使用名称为HRuntimeLoop的section
@@ -148,14 +216,10 @@ hruntime_function_array_invoke(__hruntime_init_start,(((uintptr_t)__hruntime_ini
  * 导出循环
  */
 #define HRUNTIME_LOOP_EXPORT(name,priority,entry,usr) \
+    HRUNTIME_LOOP_DATA(name,priority,entry,usr)\
     __USED\
     __SECTION("HRuntimeLoop")\
-    static const hruntime_function_t hruntime_loop_##name = \
-    {\
-        (priority),\
-        (entry) ,\
-        (usr) \
-    }
+    HRUNTIME_LOOP_STRUCT(name,priority,entry,usr)
 
 /*
  * 调用导出的循环函数
@@ -179,14 +243,10 @@ hruntime_function_array_invoke((hruntime_function_t *)&HRuntimeLoop$$Base,(((uin
 * 导出循环
 */
 #define HRUNTIME_LOOP_EXPORT(name,priority,entry,usr) \
+    HRUNTIME_LOOP_DATA(name,priority,entry,usr)\
     __USED\
     __SECTION(".HRuntimeLoop")\
-    static const hruntime_function_t hruntime_loop_##name = \
-    {\
-        (priority),\
-        (entry) ,\
-        (usr) \
-    }
+    HRUNTIME_LOOP_STRUCT(name,priority,entry,usr)
 
 /*
  * 调用导出的循环函数

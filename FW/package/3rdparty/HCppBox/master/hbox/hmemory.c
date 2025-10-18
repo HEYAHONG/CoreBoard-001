@@ -14,6 +14,11 @@
 #include "hmemory/hmemoryheap.c"
 
 /*
+ * hash
+ */
+#include "hmemory/hmemoryhash.c"
+
+/*
  * 环形缓冲区
  */
 #include "hmemory/hringbuf.c"
@@ -29,3 +34,13 @@
  */
 #include "hmemory/hdoublylinkedlist.c"
 
+
+/*
+ * 软件虚拟内存
+ */
+#include "hmemory/hsoftwarevirtualmemory.c"
+
+/*
+ * 静态内存分配
+ */
+ #include "hmemory/hmemorystaticallocator.c"
