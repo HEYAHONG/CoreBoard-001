@@ -67,4 +67,4 @@ distclean:
 	#清理当前目录
 	${Q}git clean -x -f -d
 	#清理openwrt目录
-	${Q}pushd openwrt && git clean -x -f -d && git reset --hard && popd
+	${Q}${SHELL} -c "cd openwrt && git clean -x -f -d && git reset --hard"
