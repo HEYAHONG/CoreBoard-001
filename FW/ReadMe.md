@@ -55,5 +55,6 @@ export https_proxy=http://127.0.0.1:10809
 # 目录结构
 
 - [openwrt-23.05](openwrt-23.05)：基于openwrt-23.05的固件。
+- [openwrt-24.10](openwrt-24.10)：基于openwrt-24.10的固件。
 - [package](package)：本地软件包，通常为各个固件的公共部分。
 
