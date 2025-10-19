@@ -2,3 +2,7 @@
 	path = FW/openwrt-23.05/openwrt
 	url = https://git.openwrt.org/openwrt/openwrt.git
 	branch = openwrt-23.05
+[submodule "FW/openwrt-24.10/openwrt"]
+	path = FW/openwrt-24.10/openwrt
+	url = https://git.openwrt.org/openwrt/openwrt.git
+	branch = openwrt-24.10

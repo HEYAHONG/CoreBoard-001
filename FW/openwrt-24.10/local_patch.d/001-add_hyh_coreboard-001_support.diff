@@ -1,0 +1,188 @@
+diff --git a/target/linux/ramips/dts/mt7628an_hyh_coreboard-001.dts b/target/linux/ramips/dts/mt7628an_hyh_coreboard-001.dts
+new file mode 100644
+index 0000000000..03953b2dea
+--- /dev/null
++++ b/target/linux/ramips/dts/mt7628an_hyh_coreboard-001.dts
+@@ -0,0 +1,134 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++
++#include "mt7628an.dtsi"
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++
++/ {
++	compatible = "hyh,coreboard-001","hilink,hlk-7688a", "mediatek,mt7628an-soc";
++	model = "HYH CoreBoard-001";
++
++	aliases {
++		led-boot = &led_sys;
++		led-failsafe = &led_sys;
++		led-upgrade = &led_sys;
++	};
++
++	keys {
++		compatible = "gpio-keys";
++
++		reset {
++			label = "reset";
++			gpios = <&gpio 38 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RESTART>;
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led_sys: sys {
++			label = "sys";
++			gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "heartbeat";
++		};
++	};
++};
++
++&state_default {
++	gpio {
++		groups = "wdt", "wled_an";
++		function = "gpio";
++	};
++};
++
++&uart1 {
++	status = "okay";
++};
++
++&i2c {
++	status = "okay";
++	ds1307: rtc@68 {
++		compatible = "dallas,ds1307";
++		reg = <0x68>;
++	};
++
++};
++
++&spi0 {
++	status = "okay";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi_pins>, <&spi_cs1_pins>;
++
++	flash@0 {
++		compatible = "jedec,spi-nor";
++		reg = <0>;
++		spi-max-frequency = <40000000>;
++		broken-flash-reset;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "u-boot";
++				reg = <0x0 0x30000>;
++				read-only;
++			};
++
++			partition@30000 {
++				label = "u-boot-env";
++				reg = <0x30000 0x10000>;
++				read-only;
++			};
++
++			factory: partition@40000 {
++				label = "factory";
++				reg = <0x40000 0x10000>;
++				read-only;
++			};
++
++			partition@50000 {
++				compatible = "denx,uimage";
++				label = "firmware";
++				reg = <0x50000 0x1fb0000>;
++			};
++		};
++	};
++
++	spidev@1 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "linux,spidev";
++		reg = <1>;
++		spi-max-frequency = <40000000>;
++	};
++};
++
++&ethernet {
++	nvmem-cells = <&macaddr_factory_28>;
++	nvmem-cell-names = "mac-address";
++};
++
++&esw {
++	mediatek,portmap = <0x3e>;
++};
++
++&wmac {
++	status = "okay";
++
++	mediatek,mtd-eeprom = <&factory 0x0>;
++};
++
++&factory {
++	compatible = "nvmem-cells";
++	#address-cells = <1>;
++	#size-cells = <1>;
++
++	macaddr_factory_28: macaddr@28 {
++		reg = <0x28 0x6>;
++	};
++};
+diff --git a/target/linux/ramips/image/mt76x8.mk b/target/linux/ramips/image/mt76x8.mk
+index 816009ac18..b78793a589 100644
+--- a/target/linux/ramips/image/mt76x8.mk
++++ b/target/linux/ramips/image/mt76x8.mk
+@@ -246,6 +246,14 @@ define Device/hilink_hlk-7688a
+ endef
+ TARGET_DEVICES += hilink_hlk-7688a
+ 
++define Device/hyh_coreboard-001
++  IMAGE_SIZE := 32448k
++  DEVICE_VENDOR := HYH
++  DEVICE_MODEL := CoreBoard-001
++  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport kmod-i2c-mt7628  kmod-rtc-ds1307
++endef
++TARGET_DEVICES += hyh_coreboard-001
++
+ define Device/hiwifi_hc5611
+   IMAGE_SIZE := 15808k
+   DEVICE_VENDOR := HiWiFi
+diff --git a/target/linux/ramips/mt76x8/base-files/etc/board.d/01_leds b/target/linux/ramips/mt76x8/base-files/etc/board.d/01_leds
+index 792bd13ebc..8d211fc638 100644
+--- a/target/linux/ramips/mt76x8/base-files/etc/board.d/01_leds
++++ b/target/linux/ramips/mt76x8/base-files/etc/board.d/01_leds
+@@ -46,6 +46,9 @@ skylab,skw92a)
+ hilink,hlk-7688a)
+ 	ucidef_set_led_wlan "wlan" "WLAN" "green:wlan" "phy0tpt"
+ 	;;
++hyh,coreboard-001)
++	ucidef_set_led_heartbeat "sys" "SYS" "sys"
++	;;
+ hiwifi,hc5611)
+ 	ucidef_set_led_netdev "internet" "internet" "red:internet" "br-lan" "tx rx"
+ 	;;
+diff --git a/target/linux/ramips/mt76x8/base-files/etc/board.d/02_network b/target/linux/ramips/mt76x8/base-files/etc/board.d/02_network
+index 6bcdea971b..448049415a 100644
+--- a/target/linux/ramips/mt76x8/base-files/etc/board.d/02_network
++++ b/target/linux/ramips/mt76x8/base-files/etc/board.d/02_network
+@@ -60,6 +60,10 @@ ramips_setup_interfaces()
+ 		ucidef_add_switch "switch0" \
+ 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "6@eth0"
+ 		;;
++	hyh,coreboard-001)
++		ucidef_add_switch "switch0" \
++			"1:lan" "0:wan" "6@eth0"
++		;;
+ 	asus,rt-n10p-v3|\
+ 	asus,rt-n11p-b1|\
+ 	asus,rt-n12-vp-b1|\
