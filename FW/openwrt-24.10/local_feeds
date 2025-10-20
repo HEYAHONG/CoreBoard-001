@@ -26,7 +26,7 @@ fi
 
 if [ -d "${script_dir}/../package" ]
 then
-	echo src-link  local_feeds `realpath "${script_dir}/../package"`
+	echo src-cpy  local_feeds `realpath "${script_dir}/../package"`
 fi
 
 exit 0
