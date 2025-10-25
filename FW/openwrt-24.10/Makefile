@@ -5,13 +5,14 @@ Q=@
 endif
 
 #伪目标
-.PHONY:all prepare feeds build menuconfig openwrt/Makefile  openwrt/.config clean
+.PHONY:all prepare feeds build menuconfig openwrt/Makefile  openwrt/.config clean distclean
 
 #主要步骤的依赖
 all:build
 build:prepare
 menuconfig:prepare
 clean:prepare
+distclean:prepare
 
 #openwrt源代码
 openwrt/Makefile:
