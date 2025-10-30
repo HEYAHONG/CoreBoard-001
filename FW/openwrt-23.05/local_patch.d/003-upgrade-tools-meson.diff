@@ -1,0 +1,131 @@
+From e0b10ed6f7e441e11bb32ce52441134ff0dd494c Mon Sep 17 00:00:00 2001
+From: HEYAHONG <2229388563@qq.com>
+Date: Thu, 30 Oct 2025 14:42:14 +0800
+Subject: [PATCH] =?UTF-8?q?=E6=9B=B4=E6=96=B0meson?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ include/meson.mk                        |  7 ++++++-
+ tools/meson/Makefile                    |  4 ++--
+ tools/meson/files/openwrt-cross.txt.in  |  4 +++-
+ tools/meson/files/openwrt-native.txt.in |  2 +-
+ tools/meson/patches/010-wsl2.patch      | 21 ---------------------
+ 5 files changed, 12 insertions(+), 26 deletions(-)
+ delete mode 100644 tools/meson/patches/010-wsl2.patch
+
+diff --git a/include/meson.mk b/include/meson.mk
+index 7d67dcf298..ff452d8b01 100644
+--- a/include/meson.mk
++++ b/include/meson.mk
+@@ -78,6 +78,7 @@ define Meson/CreateCrossFile
+ 	$(STAGING_DIR_HOST)/bin/sed \
+ 		-e "s|@CC@|$(foreach BIN,$(TARGET_CC),'$(BIN)',)|" \
+ 		-e "s|@CXX@|$(foreach BIN,$(TARGET_CXX),'$(BIN)',)|" \
++		-e "s|@LD@|$(foreach FLAG,$(TARGET_LINKER),'$(FLAG)',)|" \
+ 		-e "s|@AR@|$(TARGET_AR)|" \
+ 		-e "s|@STRIP@|$(TARGET_CROSS)strip|" \
+ 		-e "s|@NM@|$(TARGET_NM)|" \
+@@ -97,7 +98,9 @@ endef
+ define Host/Configure/Meson
+ 	$(call Meson/CreateNativeFile,$(HOST_BUILD_DIR)/openwrt-native.txt)
+ 	$(call Meson, \
++		setup \
+ 		--native-file $(HOST_BUILD_DIR)/openwrt-native.txt \
++		-Ddefault_library=static \
+ 		$(MESON_HOST_ARGS) \
+ 		$(MESON_HOST_BUILD_DIR) \
+ 		$(MESON_HOST_BUILD_DIR)/.., \
+@@ -120,9 +123,11 @@ define Build/Configure/Meson
+ 	$(call Meson/CreateNativeFile,$(PKG_BUILD_DIR)/openwrt-native.txt)
+ 	$(call Meson/CreateCrossFile,$(PKG_BUILD_DIR)/openwrt-cross.txt)
+ 	$(call Meson, \
+-		--buildtype plain \
++		setup \
++		--buildtype $(if $(CONFIG_DEBUG),debug,plain) \
+ 		--native-file $(PKG_BUILD_DIR)/openwrt-native.txt \
+ 		--cross-file $(PKG_BUILD_DIR)/openwrt-cross.txt \
++		-Ddefault_library=both \
+ 		$(MESON_ARGS) \
+ 		$(MESON_BUILD_DIR) \
+ 		$(MESON_BUILD_DIR)/.., \
+diff --git a/tools/meson/Makefile b/tools/meson/Makefile
+index d53ed897a3..f967f33ecd 100644
+--- a/tools/meson/Makefile
++++ b/tools/meson/Makefile
+@@ -1,11 +1,11 @@
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=meson
+-PKG_VERSION:=0.61.5
++PKG_VERSION:=1.5.1
+ 
+ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+ PKG_SOURCE_URL:=https://github.com/mesonbuild/meson/releases/download/$(PKG_VERSION)
+-PKG_HASH:=5e9a0d65c1a51936362b9686d1c5e9e184a6fd245d57e7269750ce50c20f5d9a
++PKG_HASH:=567e533adf255de73a2de35049b99923caf872a455af9ce03e01077e0d384bed
+ 
+ PKG_MAINTAINER:=Andre Heider <a.heider@gmail.com>
+ PKG_LICENSE:=Apache-2.0
+diff --git a/tools/meson/files/openwrt-cross.txt.in b/tools/meson/files/openwrt-cross.txt.in
+index ec4b027f1b..836a0e51e4 100644
+--- a/tools/meson/files/openwrt-cross.txt.in
++++ b/tools/meson/files/openwrt-cross.txt.in
+@@ -1,10 +1,12 @@
+ [binaries]
+ c = [@CC@]
++c_ld = [@LD@]
+ cpp = [@CXX@]
++cpp_ld = [@LD@]
+ ar = '@AR@'
+ strip = '@STRIP@'
+ nm = '@NM@'
+-pkgconfig = '@PKGCONFIG@'
++pkg-config = '@PKGCONFIG@'
+ cmake = '@CMAKE@'
+ python = '@PYTHON@'
+ 
+diff --git a/tools/meson/files/openwrt-native.txt.in b/tools/meson/files/openwrt-native.txt.in
+index 48e09ece2c..179e00b43e 100644
+--- a/tools/meson/files/openwrt-native.txt.in
++++ b/tools/meson/files/openwrt-native.txt.in
+@@ -1,7 +1,7 @@
+ [binaries]
+ c = [@CC@]
+ cpp = [@CXX@]
+-pkgconfig = '@PKGCONFIG@'
++pkg-config = '@PKGCONFIG@'
+ cmake = '@CMAKE@'
+ python = '@PYTHON@'
+ 
+diff --git a/tools/meson/patches/010-wsl2.patch b/tools/meson/patches/010-wsl2.patch
+deleted file mode 100644
+index 4ab799d699..0000000000
+--- a/tools/meson/patches/010-wsl2.patch
++++ /dev/null
+@@ -1,21 +0,0 @@
+-From 7d1ef4343ed5b2b7ab51469177a42c32c47f0528 Mon Sep 17 00:00:00 2001
+-From: Rosen Penev <rosenp@gmail.com>
+-Date: Tue, 6 Sep 2022 01:36:17 -0700
+-Subject: [PATCH] minstall: handle extra error for selinuxenabled
+-
+-Microsoft's WSL2 uses a Plan 9 filesystem, which returns IOError when file is missing.
+----
+- mesonbuild/minstall.py | 2 +-
+- 1 file changed, 1 insertion(+), 1 deletion(-)
+-
+---- a/mesonbuild/minstall.py
+-+++ b/mesonbuild/minstall.py
+-@@ -229,7 +229,7 @@ def restore_selinux_contexts() -> None:
+-     '''
+-     try:
+-         subprocess.check_call(['selinuxenabled'])
+--    except (FileNotFoundError, NotADirectoryError, PermissionError, subprocess.CalledProcessError):
+-+    except (FileNotFoundError, NotADirectoryError, OSError, PermissionError, subprocess.CalledProcessError):
+-         # If we don't have selinux or selinuxenabled returned 1, failure
+-         # is ignored quietly.
+-         return
+-- 
+2.43.0
+

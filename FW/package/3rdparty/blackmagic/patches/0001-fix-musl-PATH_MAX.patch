@@ -1,0 +1,26 @@
+From 3c232bd7c310e92a6774b4505403c3ca54c18e78 Mon Sep 17 00:00:00 2001
+From: HEYAHONG <2229388563@qq.com>
+Date: Thu, 30 Oct 2025 16:45:53 +0800
+Subject: [PATCH] fix musl PATH_MAX
+
+---
+ src/include/general.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/include/general.h b/src/include/general.h
+index 34278e94..15b0ecdb 100644
+--- a/src/include/general.h
++++ b/src/include/general.h
+@@ -56,6 +56,9 @@
+ #elif !defined(__FreeBSD__)
+ #include <alloca.h>
+ #endif
++#ifdef __linux__
++#include <linux/limits.h>
++#endif
+ // IWYU pragma: begin_keep
+ #include <stdint.h>
+ #include <stdbool.h>
+-- 
+2.43.0
+

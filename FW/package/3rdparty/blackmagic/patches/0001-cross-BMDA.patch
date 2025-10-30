@@ -1,0 +1,28 @@
+From 25c675722453284f3e61678b7ab63d3067b65bdb Mon Sep 17 00:00:00 2001
+From: HEYAHONG <2229388563@qq.com>
+Date: Thu, 30 Oct 2025 15:25:52 +0800
+Subject: [PATCH] =?UTF-8?q?=E5=85=81=E8=AE=B8=E4=BD=BF=E7=94=A8cross?=
+ =?UTF-8?q?=E5=88=9B=E5=BB=BABMDA?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ meson.build | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/meson.build b/meson.build
+index d7d5f49b..8a24538d 100644
+--- a/meson.build
++++ b/meson.build
+@@ -320,7 +320,6 @@ elif bmda_platform.found()
+ 	bmda = executable(
+ 		'blackmagic',
+ 		dependencies: [libbmd_core, bmda_platform],
+-		native: is_cross_build,
+ 	)
+ 	alias_target('bmda', bmda)
+ elif not is_firmware_build
+-- 
+2.43.0
+

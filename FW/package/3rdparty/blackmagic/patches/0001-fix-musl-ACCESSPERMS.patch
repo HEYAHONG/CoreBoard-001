@@ -1,0 +1,30 @@
+From 5e0e5d1027bc67f8d93316e578fcdecb0290eaec Mon Sep 17 00:00:00 2001
+From: HEYAHONG <2229388563@qq.com>
+Date: Thu, 30 Oct 2025 16:36:28 +0800
+Subject: [PATCH] fix musl ACCESSPERMS
+
+---
+ src/platforms/hosted/cmsis_dap.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/platforms/hosted/cmsis_dap.c b/src/platforms/hosted/cmsis_dap.c
+index 6d8fac0f..d749cfb2 100644
+--- a/src/platforms/hosted/cmsis_dap.c
++++ b/src/platforms/hosted/cmsis_dap.c
+@@ -85,6 +85,13 @@ typedef enum cmsis_type {
+ typedef struct hid_device_info hid_device_info_s;
+ #endif
+ 
++#ifdef __linux__
++#include <sys/stat.h>
++#ifndef  ACCESSPERMS
++#define  ACCESSPERMS (S_IRWXU | S_IRWXG | S_IRWXO)
++#endif
++#endif
++
+ typedef struct dap_version {
+ 	uint16_t major;
+ 	uint16_t minor;
+-- 
+2.43.0
+
