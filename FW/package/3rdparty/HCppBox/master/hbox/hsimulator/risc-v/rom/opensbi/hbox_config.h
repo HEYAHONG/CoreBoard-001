@@ -24,9 +24,20 @@
 #define HRUNTIME_USING_LOOP_SECTION 1
 
 /*
+ * 启用循环段缓存表
+ */
+#define HRUNTIME_USING_LOOP_CACHE_TABLE 1
+
+/*
+ * 循环段缓存表表大小
+ */
+#define HRUNTIME_USING_LOOP_CACHE_TABLE_ITEM_COUNT 128
+
+/*
  * 启用符号段
  */
 #define HRUNTIME_USING_SYMBOL_SECTION 1
+
 
 /*
  * 不启用看门狗（在FreeRTOS空闲钩子中启用）
@@ -54,6 +65,24 @@
  */
 #define HGETCHAR hbox_getchar
 
+/*
+ * 使用精简的strcmp
+ */
+#define HDEFAULTS_LIBC_TINY_STRCMP 1
 
+/*
+ * 使用精简的strncmp
+ */
+#define HDEFAULTS_LIBC_TINY_STRNCMP 1
+
+/*
+ * 使用精简的strlen
+ */
+#define HDEFAULTS_LIBC_TINY_STRLEN 1
+
+/*
+ * 使用精简的memset
+ */
+#define HDEFAULTS_LIBC_TINY_MEMSET 1
 
 #endif // __HBOX_CONFIG_H__
