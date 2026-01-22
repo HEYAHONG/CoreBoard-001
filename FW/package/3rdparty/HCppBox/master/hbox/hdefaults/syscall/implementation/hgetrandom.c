@@ -57,33 +57,12 @@ HDEFAULTS_USERCALL_DEFINE3(hgetrandom,HDEFAULTS_SYSCALL_HGETRANDOM,hgetrandom_ss
             CryptReleaseContext(hCryptProv,0);
         }
     }
-#else
+#elif  !defined(HSYSCALL_NO_IMPLEMENTATION) && !defined(HSYSCALL_NO_RANDOM)
     {
-        static bool is_random_init=false;
-        if(!is_random_init)
-        {
-            //使用当前时间作为随机数种子
-            hgettimeofday_timeval_t tv= {0};
-            hgettimeofday(&tv,NULL);
-            if((tv.tv_usec+tv.tv_sec)!=0)
-            {
-                srand(tv.tv_sec+tv.tv_usec);
-                is_random_init=true;
-            }
-        }
-        {
-            //使用C库随机数函数
-            uint8_t *buffer_array=(uint8_t *)buffer;
-            if(buffer_array!=NULL)
-            {
-                for(size_t i=0; i<length; i++)
-                {
-                    buffer_array[i]=rand()%0x100;
-                }
-                ret=length;
-            }
-        }
+        ret=hsyscall_getrandom(buffer,length,flags);
     }
+#else
+
 #endif
     return ret;
 }

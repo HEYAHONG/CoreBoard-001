@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindMATIEC.cmake)
+
 
 if(MSVC)
     add_compile_options(-utf-8 )
@@ -48,5 +48,17 @@ endif()
 check_include_file(fcntl.h HAVE_FCNTL_H)
 if(HAVE_FCNTL_H)
 target_compile_definitions(HBox PUBLIC  HAVE_FCNTL_H=1)
+endif()
+
+#查找threads.h
+check_include_file(threads.h HAVE_THREADS_H)
+if(HAVE_THREADS_H)
+target_compile_definitions(HBox PUBLIC  HAVE_THREADS_H=1)
+endif()
+
+#查找stdatomic.h
+check_include_file(stdatomic.h HAVE_STDATOMIC_H)
+if(HAVE_STDATOMIC_H)
+target_compile_definitions(HBox PUBLIC  HAVE_STDATOMIC_H=1)
 endif()
 
