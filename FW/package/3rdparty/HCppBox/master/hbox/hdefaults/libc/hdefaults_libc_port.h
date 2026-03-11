@@ -15,6 +15,11 @@ extern "C"
 #endif // __cplusplus
 
 /*
+ * errno
+ */
+#include "wrapper/errno/herrno.h"
+
+/*
  * stdio
  */
 #include "wrapper/stdio/hputchar.h"
@@ -26,6 +31,10 @@ extern "C"
 #include "wrapper/stdio/hferror.h"
 #include "wrapper/stdio/hfread.h"
 #include "wrapper/stdio/hfwrite.h"
+#include "wrapper/stdio/hfclose.h"
+#include "wrapper/stdio/hfopen.h"
+#include "wrapper/stdio/hfseek.h"
+
 
 /*
  * stdlib
@@ -59,6 +68,15 @@ extern "C"
 #include "wrapper/stdatomic/hatomic_flag.h"
 
 /*
+ * threads
+ */
+#include "wrapper/threads/hthreads_common.h"
+#include "wrapper/threads/hthrd.h"
+#include "wrapper/threads/hcall_once.h"
+#include "wrapper/threads/hmtx.h"
+
+
+/*
  * posix标准中的函数
  */
 
@@ -74,6 +92,14 @@ extern "C"
  */
 #include "hlibc/env/hlibc_env.h"
 #include "hlibc/stdatomic/hlibc_atomic_flag.h"
+#include "hlibc/time/hlibc_time.h"
+#include "hlibc/threads/hlibc_threads.h"
+#include "hlibc/stdio/hlibc_stdio.h"
+
+/*
+ * 非标扩展
+ */
+#include "wrapper/nonstandard/stdatomic/hatomic_int.h"
 
 #ifdef __cplusplus
 }

@@ -25,6 +25,15 @@
 #if !defined(HLIBC_NO_ATOMIC_FLAG)
 #include "hlibc/stdatomic/hlibc_atomic_flag.c"
 #endif
+#if !defined(HLIBC_NO_TIME)
+#include "hlibc/time/hlibc_time.c"
+#endif
+#if !defined(HLIBC_NO_THREADS)
+#include "hlibc/threads/hlibc_threads.c"
+#endif
+#if !defined(HLIBC_NO_STDIO)
+#include "hlibc/stdio/hlibc_stdio.c"
+#endif
 #else
 #ifdef HDEFAULTS_LIBC_TINY
 #undef HDEFAULTS_LIBC_TINY
@@ -35,6 +44,11 @@
 /*
  * libc包装
  */
+
+/*
+ * errno
+ */
+#include "wrapper/errno/herrno.c"
 
 /*
  * stdio
@@ -48,6 +62,9 @@
 #include "wrapper/stdio/hferror.c"
 #include "wrapper/stdio/hfread.c"
 #include "wrapper/stdio/hfwrite.c"
+#include "wrapper/stdio/hfclose.c"
+#include "wrapper/stdio/hfopen.c"
+#include "wrapper/stdio/hfseek.c"
 
 /*
  * stdlib
@@ -77,7 +94,16 @@
 /*
  * stdatomic
  */
+#include "wrapper/stdatomic/hstdatomic_common.c"
 #include "wrapper/stdatomic/hatomic_flag.c"
+
+/*
+ * threads
+ */
+#include "wrapper/threads/hthreads_common.c"
+#include "wrapper/threads/hthrd.c"
+#include "wrapper/threads/hcall_once.c"
+#include "wrapper/threads/hmtx.c"
 
 /*
  * posix标准中的函数
@@ -85,6 +111,10 @@
 #include "wrapper/posix/stdlib/hsetenv.c"
 #include "wrapper/posix/stdlib/hunsetenv.c"
 
+/*
+ * 非标扩展
+ */
+#include "wrapper/nonstandard/stdatomic/hatomic_int.c"
 
 void hdefaults_libc_port_init(void)
 {
