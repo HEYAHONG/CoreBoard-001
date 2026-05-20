@@ -16,10 +16,9 @@ math(EXPR  PROJECT_BUILD_VERSION_STR "${PROJECT_BUILD_TIME_SECOND}/60/60/24"  OU
 #程序版本
 set(PROJECT_VERSION_STR "${PROJECT_MAJOR_VERSION_STR}.${PROJECT_MINOR_VERSION_STR}.${PROJECT_REVISION_VERSION_STR}.${PROJECT_BUILD_VERSION_STR}")
 message(STATUS "Version:${PROJECT_VERSION_STR}")
-configure_file(Version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/Version.h)
-if(WIN32)
-configure_file(Version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/win32/Version.h)
-endif()
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+list(APPEND CMAKE_RC_FLAGS "-I${CMAKE_CURRENT_BINARY_DIR}")
+configure_file(Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/Version.h)
 
 Project(${PROJECT_NAME} C CXX ASM)
 Project(${PROJECT_NAME}	VERSION "${PROJECT_VERSION_STR}")
@@ -29,31 +28,31 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 if(WIN32)
-	if(MSVC)
-		add_compile_options(-utf-8)
-	endif()
+    if(MSVC)
+        add_compile_options(-utf-8)
+    endif()
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../common  ${CMAKE_CURRENT_SOURCE_DIR}/../../common/3rdparty/astyle/ ${CMAKE_CURRENT_SOURCE_DIR}/ )
 
 file(GLOB MAIN_CXX_C_FILES *.cpp *.c *.h ../../common/common_wxwidgets.h ../../common/common_wxwidgets.cpp  guibase/*.cpp guibase/*.c guibase/*.h 
-../../common/3rdparty/astyle/ASBeautifier.cpp
-../../common/3rdparty/astyle/ASEnhancer.cpp
-../../common/3rdparty/astyle/ASFormatter.cpp
-../../common/3rdparty/astyle/ASLocalizer.cpp
-../../common/3rdparty/astyle/ASResource.cpp
-)
+    ../../common/3rdparty/astyle/ASBeautifier.cpp
+    ../../common/3rdparty/astyle/ASEnhancer.cpp
+    ../../common/3rdparty/astyle/ASFormatter.cpp
+    ../../common/3rdparty/astyle/ASLocalizer.cpp
+    ../../common/3rdparty/astyle/ASResource.cpp
+    )
 list(APPEND  MAIN_SRCS ${MAIN_CXX_C_FILES})
 
 if(WIN32)
-	file(GLOB_RECURSE MAIN_RC_FILES win32/*.rc)
-	list(APPEND  MAIN_SRCS ${MAIN_RC_FILES})
+    file(GLOB_RECURSE MAIN_RC_FILES win32/*.rc)
+    list(APPEND  MAIN_SRCS ${MAIN_RC_FILES})
 endif()
 
 if(WIN32)
-	add_executable(${PROJECT_NAME} WIN32 ${MAIN_SRCS})
+    add_executable(${PROJECT_NAME} WIN32 ${MAIN_SRCS})
 else()
-	add_executable(${PROJECT_NAME} ${MAIN_SRCS})
+    add_executable(${PROJECT_NAME} ${MAIN_SRCS})
 endif()
 target_link_libraries(${PROJECT_NAME} ${MAIN_LIBS})
 
@@ -63,9 +62,9 @@ FIND_PACKAGE(Threads REQUIRED)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${CMAKE_THREAD_LIBS_INIT})
 
 if(WIN32)
-	find_package(wxWidgets 3.2.0 REQUIRED core base adv aui stc webview html gl richtext )
+    find_package(wxWidgets 3.2.0 REQUIRED core base adv aui stc webview html gl richtext )
 else()
-	find_package(wxWidgets 3.2.0 REQUIRED all)
+    find_package(wxWidgets 3.2.0 REQUIRED all)
 endif()
 include(${wxWidgets_USE_FILE})
 target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES})
@@ -82,10 +81,13 @@ hcppbox_enable(${PROJECT_NAME})
 hrc_enable(${PROJECT_NAME})
 
 include(GNUInstallDirs)
+if(NOT DEFINED HTOOLS_INSTALL_DIR)
+    set(HTOOLS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+endif()
 if(DEFINED HTOOLS_INSTALL_DIR)
-install(TARGETS ${PROJECT_NAME}
-       RUNTIME DESTINATION ${HTOOLS_INSTALL_DIR}/bin
-       LIBRARY DESTINATION ${HTOOLS_INSTALL_DIR}/lib
-       ARCHIVE DESTINATION ${HTOOLS_INSTALL_DIR}/lib
-       )
+    install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION ${HTOOLS_INSTALL_DIR}/bin
+        LIBRARY DESTINATION ${HTOOLS_INSTALL_DIR}/lib
+        ARCHIVE DESTINATION ${HTOOLS_INSTALL_DIR}/lib
+        )
 endif()
