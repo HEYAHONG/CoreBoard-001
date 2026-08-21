@@ -31,12 +31,14 @@
 #include "wrapper/hmunmap.c"
 #include "wrapper/hmprotect.c"
 #include "wrapper/hclose.c"
+#include "wrapper/hfsync.c"
 #include "wrapper/hread.c"
 #include "wrapper/hwrite.c"
 #include "wrapper/hlseek.c"
 #include "wrapper/hopen.c"
 #include "wrapper/hfcntl.c"
 #include "wrapper/hopenat.c"
+#include "wrapper/hmkdir.c"
 #include "wrapper/hioctl.c"
 #include "wrapper/hclock_getres.c"
 #include "wrapper/hclock_gettime.c"
@@ -53,12 +55,14 @@
 #include "implementation/hmunmap.c"
 #include "implementation/hmprotect.c"
 #include "implementation/hclose.c"
+#include "implementation/hfsync.c"
 #include "implementation/hread.c"
 #include "implementation/hwrite.c"
 #include "implementation/hlseek.c"
 #include "implementation/hopen.c"
 #include "implementation/hfcntl.c"
 #include "implementation/hopenat.c"
+#include "implementation/hmkdir.c"
 #include "implementation/hioctl.c"
 #include "implementation/hclock_getres.c"
 #include "implementation/hclock_gettime.c"
@@ -99,6 +103,10 @@
 #undef HDEFAULTS_SYSCALL_HCLOSE
 #endif // HDEFAULTS_SYSCALL_NO_HCLOSE
 
+#ifdef HDEFAULTS_SYSCALL_NO_HFSYNC
+#undef HDEFAULTS_SYSCALL_HFSYNC
+#endif // HDEFAULTS_SYSCALL_NO_HFSYNC
+
 #ifdef HDEFAULTS_SYSCALL_NO_HREAD
 #undef HDEFAULTS_SYSCALL_HREAD
 #endif // HDEFAULTS_SYSCALL_NO_HREAD
@@ -122,6 +130,10 @@
 #ifdef HDEFAULTS_SYSCALL_NO_HOPENAT
 #undef HDEFAULTS_SYSCALL_HOPENAT
 #endif // HDEFAULTS_SYSCALL_NO_HOPENAT
+
+#ifdef HDEFAULTS_SYSCALL_NO_HMKDIR
+#undef HDEFAULTS_SYSCALL_HMKDIR
+#endif // HDEFAULTS_SYSCALL_NO_HMKDIR
 
 #ifdef HDEFAULTS_SYSCALL_NO_HIOCTL
 #undef HDEFAULTS_SYSCALL_HIOCTL
@@ -201,6 +213,13 @@ hdefaults_syscall_function_t hdefaults_syscall_function_find(uintptr_t number)
     }
     break;
 #endif
+#ifdef HDEFAULTS_SYSCALL_HFSYNC
+    case HDEFAULTS_SYSCALL_HFSYNC:
+    {
+        ret=__hdefaults_usercall_hfsync;
+    }
+    break;
+#endif
 #ifdef HDEFAULTS_SYSCALL_HREAD
     case HDEFAULTS_SYSCALL_HREAD:
     {
@@ -240,6 +259,13 @@ hdefaults_syscall_function_t hdefaults_syscall_function_find(uintptr_t number)
     case HDEFAULTS_SYSCALL_HOPENAT:
     {
         ret=__hdefaults_usercall_hopenat;
+    }
+    break;
+#endif
+#ifdef HDEFAULTS_SYSCALL_HMKDIR
+    case HDEFAULTS_SYSCALL_HMKDIR:
+    {
+        ret=__hdefaults_usercall_hmkdir;
     }
     break;
 #endif
