@@ -65,4 +65,11 @@ if [ -f "${script_dir}/openblt/README.md" ]
 then
 	rsync -rl "${script_dir}/openblt/Doc/license.html" "${script_dir}/"
 	rsync -rl --progress  --include="*.h" --include="*.c" --exclude="*" "${script_dir}/openblt/Target/Source/" "${script_dir}/"
+	sed -i "s/netdev.h/patch\/netdev.h/g" net.c
+	sed -i "s/uip.h/patch\/uip.h/g" net.c
+	sed -i "s/uip_arp.h/patch\/uip_arp.h/g" net.c
+	sed -i 's/blt_int32u mta/blt_addr   mta/g' xcp.c
+	sed -i 's/(blt_addr)(blt_int32u)/(blt_addr)/g' xcp.c
+	sed -i 's/(blt_int32u)\&/(blt_addr)\&/g' xcp.c
+	sed -i 's/ff.h/patch\/ff.h/g' file.h
 fi
