@@ -242,6 +242,12 @@ const hdlt645_slave_time_t hdlt645_slave_time_default=
 #define HDLT645_SLAVE_CLEAR NULL
 #endif
 
+#ifdef __ARMCC_VERSION
+#ifndef __clang__
+#pragma diag_suppress 1296
+#endif
+#endif // __ARMCC_VERSION
+
 HDEFAULTS_RO_ATTRIBUTE
 static const hdlt645_slave_io_ctx_cmd_t hdlt645_slave_io_ctx_cmd_default[]=
 {
@@ -336,7 +342,7 @@ void hdlt645_slave_io_ctx_process_io(hdlt645_slave_io_ctx_t *ctx,hdlt645_slave_i
          * 检查地址
          */
         hdlt645_bcd_addr_t public_bcd_addr;
-        hdlt645_bcd_addr_set(&public_bcd_addr,HDLT645_FRAME_BOARDCAST_BCD_ADDR);
+        hdlt645_bcd_addr_set(&public_bcd_addr,HDLT645_FRAME_BROADCAST_BCD_ADDR);
 
         hdlt645_bcd_addr_t *frame_addr=hdlt645_frame_get_bcd_addr(frame,frame_len);
 
