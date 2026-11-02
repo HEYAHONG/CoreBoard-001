@@ -1,0 +1,222 @@
+name: ubuntu openwrt firmware build
+
+on:
+  push:
+    # 仅在 testing 标签更新时触发。
+    tags:
+      - testing
+
+permissions:
+  contents: write
+
+env:
+  # openwrt 编译过程中需要下载大量文件，网络偶发失败很常见。
+  # 首次构建失败后额外重试 3 次，即最多尝试 4 次。
+  BUILD_RETRIES: 3
+
+jobs:
+  discover:
+    name: Discover OpenWrt projects
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.find.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Find FW/openwrt-* projects
+        id: find
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          projects=()
+          for dir in FW/openwrt-*; do
+            [[ -d "$dir" ]] || continue
+            [[ -f "$dir/Makefile" ]] || continue
+            projects+=("$(basename "$dir")")
+          done
+
+          if ((${#projects[@]} == 0)); then
+            echo 'projects=[]' >> "$GITHUB_OUTPUT"
+            echo "No FW/openwrt-* project was found."
+          else
+            json="$(printf '%s\n' "${projects[@]}" | jq -Rsc 'split("\n") | map(select(length > 0))')"
+            echo "projects=${json}" >> "$GITHUB_OUTPUT"
+            printf 'Discovered OpenWrt projects: %s\n' "${projects[*]}"
+          fi
+
+  build:
+    name: Build ${{ matrix.project }}
+    needs: discover
+    if: needs.discover.outputs.projects != '[]'
+    runs-on: ubuntu-latest
+    # OpenWrt 完整编译耗时较长，失败重试时会继续使用已有产物。
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.discover.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # OpenWrt 的 scripts/getver.sh 需要完整历史才能生成正确的版本号。
+          fetch-depth: 0
+
+      - name: Initialize submodules
+        env:
+          PROJECT: ${{ matrix.project }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git submodule sync --recursive
+          git submodule update --init --recursive -- "FW/${PROJECT}/openwrt"
+
+          echo "Submodule status:"
+          git submodule status --recursive
+
+          if [[ ! -f "FW/${PROJECT}/openwrt/Makefile" ]]; then
+            echo "::error::Submodule FW/${PROJECT}/openwrt was not initialized correctly."
+            exit 1
+          fi
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf \
+            /usr/local/lib/android \
+            /usr/share/dotnet \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/boost
+          df -h
+
+      - name: Install build environment
+        # 依赖参考 https://openwrt.org/docs/guide-developer/toolchain/install-buildsystem
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            clang \
+            flex \
+            bison \
+            g++ \
+            gawk \
+            gcc-multilib \
+            g++-multilib \
+            gettext \
+            git \
+            libncurses-dev \
+            libssl-dev \
+            patch \
+            python3-setuptools \
+            rsync \
+            swig \
+            time \
+            unzip \
+            wget \
+            xsltproc \
+            zlib1g-dev \
+            file
+
+      - name: Build ${{ matrix.project }}
+        env:
+          PROJECT: ${{ matrix.project }}
+        working-directory: FW/${{ matrix.project }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          max_attempts=$((BUILD_RETRIES + 1))
+          for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+            echo "::group::make attempt ${attempt}/${max_attempts} for ${PROJECT}"
+            if make -j"$(nproc)"; then
+              echo "::endgroup::"
+              echo "Build of ${PROJECT} succeeded on attempt ${attempt}."
+              exit 0
+            fi
+            echo "::endgroup::"
+
+            if ((attempt < max_attempts)); then
+              echo "::warning::Build of ${PROJECT} failed on attempt ${attempt}/${max_attempts}; retrying in 30 seconds..."
+              sleep 30
+            fi
+          done
+
+          echo "::error::Build of ${PROJECT} failed after ${max_attempts} attempts."
+          exit 1
+
+      - name: Package ${{ matrix.project }}
+        env:
+          PROJECT: ${{ matrix.project }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bin_dir="FW/${PROJECT}/openwrt/bin"
+          dist_dir="${RUNNER_TEMP}/dist"
+          mkdir -p "$dist_dir"
+
+          if [[ ! -d "$bin_dir" ]]; then
+            echo "::error::Build output directory ${bin_dir} does not exist."
+            exit 1
+          fi
+          if ! find "$bin_dir" -type f -print -quit | grep -q .; then
+            echo "::error::Build output directory ${bin_dir} is empty."
+            exit 1
+          fi
+
+          tar -czf "${dist_dir}/${PROJECT}-snapshot.tar.gz" \
+            -C "FW/${PROJECT}/openwrt" bin
+
+          echo "Created ${PROJECT}-snapshot.tar.gz, first entries:"
+          tar -tzf "${dist_dir}/${PROJECT}-snapshot.tar.gz" | sed -n '1,50p'
+
+      - name: Upload ${{ matrix.project }} package
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.project }}
+          path: ${{ runner.temp }}/dist/${{ matrix.project }}-snapshot.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish firmware release
+    needs: [discover, build]
+    if: needs.build.result == 'success' && needs.discover.outputs.projects != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download firmware packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: firmware-*
+          path: ${{ runner.temp }}/dist
+          merge-multiple: true
+
+      - name: Publish to the testing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: testing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t files < <(
+            find "${RUNNER_TEMP}/dist" -maxdepth 1 -type f \
+              -name '*-snapshot.tar.gz' | sort
+          )
+          if ((${#files[@]} == 0)); then
+            echo "::error::No firmware snapshot packages were downloaded."
+            exit 1
+          fi
+
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
+              --prerelease \
+              --title "$RELEASE_TAG" \
+              --notes "Automated OpenWrt firmware snapshots for tag \`${RELEASE_TAG}\`." \
+              --target "$GITHUB_SHA"
+          fi
+
+          gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
